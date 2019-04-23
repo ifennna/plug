@@ -45,6 +45,10 @@ func (lexer *Lexer) NextToken() token.Token {
 			tok.Literal = lexer.readIdentifier()
 			tok.Type = token.LookUpIdentifier(tok.Literal)
 			return tok
+		} else if isDigit(lexer.currentChar) {
+			tok.Type = token.INT
+			tok.Literal = lexer.readNumber()
+			return tok
 		} else {
 			tok = newToken(token.ILLEGAL, lexer.currentChar)
 		}
@@ -79,9 +83,21 @@ func isLetter(character byte) bool {
 	return 'a' <= character && character <= 'z' || 'A' <= character && character <= 'Z' || character == '_'
 }
 
+func isDigit(character byte) bool {
+	return '0' <= character && character <= '9'
+}
+
 func (lexer *Lexer) readIdentifier() string {
 	position := lexer.currentPosition
 	for isLetter(lexer.currentChar) {
+		lexer.readChar()
+	}
+	return lexer.input[position:lexer.currentPosition]
+}
+
+func (lexer *Lexer) readNumber() string {
+	position := lexer.currentPosition
+	for isDigit(lexer.currentChar) {
 		lexer.readChar()
 	}
 	return lexer.input[position:lexer.currentPosition]
