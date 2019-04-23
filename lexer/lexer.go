@@ -18,6 +18,8 @@ func New(input string) *Lexer {
 func (lexer *Lexer) NextToken() token.Token {
 	var tok token.Token
 
+	lexer.skipWhitespace()
+
 	switch lexer.currentChar {
 	case '=':
 		tok = newToken(token.ASSIGN, lexer.currentChar)
@@ -38,10 +40,24 @@ func (lexer *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	default:
+		if isLetter(lexer.currentChar) {
+			tok.Literal = lexer.readIdentifier()
+			tok.Type = token.LookUpIdentifier(tok.Literal)
+			return tok
+		} else {
+			tok = newToken(token.ILLEGAL, lexer.currentChar)
+		}
 	}
 
 	lexer.readChar()
 	return tok
+}
+
+func (lexer *Lexer) skipWhitespace() {
+	for lexer.currentChar == ' ' || lexer.currentChar == '\t' || lexer.currentChar == '\n' || lexer.currentChar == '\r' {
+		lexer.readChar()
+	}
 }
 
 func (lexer *Lexer) readChar() {
@@ -57,4 +73,16 @@ func (lexer *Lexer) readChar() {
 
 func newToken(tokenType token.Type, character byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(character)}
+}
+
+func isLetter(character byte) bool {
+	return 'a' <= character && character <= 'z' || 'A' <= character && character <= 'Z' || character == '_'
+}
+
+func (lexer *Lexer) readIdentifier() string {
+	position := lexer.currentPosition
+	for isLetter(lexer.currentChar) {
+		lexer.readChar()
+	}
+	return lexer.input[position:lexer.currentPosition]
 }
