@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"plug/token"
 	"testing"
 )
@@ -37,5 +38,7 @@ func TestNextToken(t *testing.T) {
 			t.Fatalf("tests[%d] - literal is wrong, expected=%q, got=%q",
 				index, testToken.expectedLiteral, resultToken.Literal)
 		}
+
+		fmt.Print(resultToken)
 	}
 }
