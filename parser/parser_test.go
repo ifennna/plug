@@ -10,7 +10,7 @@ func TestLetStatements(t *testing.T) {
 	input := `
 let x = 5;
 let y = 10;
-let foo 83.338;
+let foo = 83.338;
 `
 
 	lexer := lexerPackage.New(input)
@@ -38,6 +38,35 @@ let foo 83.338;
 		statement := program.Statements[index]
 		if !testLetStatement(t, statement, value.expectedIdentifier) {
 			return
+		}
+	}
+}
+
+func TestReturnStatements(t *testing.T) {
+	input := `
+return 5;
+return 10;
+return 993322;
+`
+
+	lexer := lexerPackage.New(input)
+	parser := New(lexer)
+
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 3 {
+		t.Fatalf("program contains %d statements, not 3", len(program.Statements))
+	}
+
+	for _, statement := range program.Statements {
+		returnStatement, ok := statement.(*ast.ReturnStatement)
+		if !ok {
+			t.Errorf("statement not *ast.ReturnStatement, got %T",statement)
+			continue
+		}
+		if returnStatement.TokenLiteral() != "return" {
+			t.Errorf("returnStatement token not 'return', got %q", returnStatement.TokenLiteral())
 		}
 	}
 }
