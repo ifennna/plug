@@ -109,6 +109,25 @@ func (expressionStatement *ExpressionStatement) String() string {
 	return ""
 }
 
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (prefixExp *PrefixExpression) expressionNode()      {}
+func (prefixExp *PrefixExpression) TokenLiteral() string { return prefixExp.Token.Literal }
+func (prefixExp *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(prefixExp.Operator)
+	out.WriteString(prefixExp.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
