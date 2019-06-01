@@ -82,10 +82,7 @@ func TestIdentifierExpression(t *testing.T) {
 	if len(program.Statements) != 1 {
 		t.Fatalf("program does not have enough statements, got %d", len(program.Statements))
 	}
-	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("statement is not an ast.ExpressionStatement, got %T", program.Statements[0])
-	}
+	statement, ok := getStatement(program, t)
 
 	identifier, ok := statement.Expression.(*ast.Identifier)
 	if !ok {
@@ -110,10 +107,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	if len(program.Statements) != 1 {
 		t.Fatalf("program does not have enough statements, got %d", len(program.Statements))
 	}
-	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("statement is not an ast.ExpressionStatement, got %T", program.Statements[0])
-	}
+	statement, ok := getStatement(program, t)
 
 	literal, ok := statement.Expression.(*ast.IntegerLiteral)
 	if !ok {
@@ -146,10 +140,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		if len(program.Statements) != 1 {
 			t.Fatalf("program.Statements contains %d statements, not %d", len(program.Statements), 1)
 		}
-		statement, ok := program.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("program.Statements[0] is not an ast.ExpressionStatement, got %T", program.Statements[0])
-		}
+		statement, ok := getStatement(program, t)
 		expression, ok := statement.Expression.(*ast.PrefixExpression)
 		if !ok {
 			t.Fatalf("statement is not a ast.PrefixExpression, got %T", statement.Expression)
@@ -161,6 +152,57 @@ func TestParsingPrefixExpressions(t *testing.T) {
 			return
 		}
 	}
+}
+
+func TestParsingInfixExpressions(t *testing.T) {
+	testCases := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		{"5 + 5;", 5, "+", 5},
+		{"5 - 5;", 5, "-", 5},
+		{"5 * 5;", 5, "*", 5},
+		{"5 / 5;", 5, "/", 5},
+		{"5 > 5;", 5, ">", 5},
+		{"5 < 5;", 5, "<", 5},
+		{"5 == 5;", 5, "==", 5},
+		{"5 != 5;", 5, "!=", 5},
+	}
+
+	for _, testCase := range testCases {
+		lexer := lexerPackage.New(testCase.input)
+		parser := New(lexer)
+		program := parser.ParseProgram()
+		checkParserErrors(t, parser)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements contains %d statements, not %d", len(program.Statements), 1)
+		}
+		statement, ok := getStatement(program, t)
+		expression, ok := statement.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("expression is not ast.InfixExpression. got=%T", statement.Expression)
+		}
+		if !testIntegerLiteral(t, expression.Left, testCase.leftValue) {
+			return
+		}
+		if expression.Operator != testCase.operator {
+			t.Fatalf("exp.Operator is not '%s'. got=%s", testCase.operator, expression.Operator)
+		}
+		if !testIntegerLiteral(t, expression.Right, testCase.rightValue) {
+			return
+		}
+	}
+}
+
+func getStatement(program *ast.Program, t *testing.T) (*ast.ExpressionStatement, bool) {
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not an ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+	return statement, ok
 }
 
 func checkParserErrors(t *testing.T, parser *Parser) {
