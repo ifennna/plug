@@ -283,6 +283,64 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `func(a, b) {a * b;}`
+
+	lexer := lexerPackage.New(input)
+	parser := New(lexer)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements contains %d statements, not %d", len(program.Statements), 1)
+	}
+	statement := getStatement(program, t)
+	function, ok := statement.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("statement expression is not ast.FunctionLiteral. got=%T", statement.Expression)
+	}
+	if len(function.Parameters) != 2 {
+		t.Fatalf("function literal parameters wrong, epected 2, got %d", len(function.Parameters))
+	}
+	testLiteralExpression(t, function.Parameters[0], "a")
+	testLiteralExpression(t, function.Parameters[1], "b")
+
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("expected 1 function body statement(s), got %d", len(function.Body.Statements))
+	}
+	bodyStatement, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("body statement not ast.ExpressionStatement, get %T", function.Body.Statements[0])
+	}
+	testInfixExpression(t, bodyStatement.Expression, "a", "*", "b")
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "func() {};", expectedParams: []string{}},
+		{input: "func(x) {};", expectedParams: []string{"x"}},
+		{input: "func(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+	for _, testCase := range tests {
+		lexer := lexerPackage.New(testCase.input)
+		parser := New(lexer)
+		program := parser.ParseProgram()
+		checkParserErrors(t, parser)
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		function := stmt.Expression.(*ast.FunctionLiteral)
+		if len(function.Parameters) != len(testCase.expectedParams) {
+			t.Errorf("length parameters wrong. want %d, got=%d\n",
+				len(testCase.expectedParams), len(function.Parameters))
+		}
+		for i, ident := range testCase.expectedParams {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
+	}
+}
+
 func TestOperatorPrecedenceParsing(t *testing.T) {
 	tests := []struct {
 		input    string

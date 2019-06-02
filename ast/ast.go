@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"plug/token"
+	"strings"
 )
 
 type Node interface {
@@ -206,6 +207,31 @@ func (ifExp *IfExpression) String() string {
 		out.WriteString("else ")
 		out.WriteString(ifExp.Alternative.String())
 	}
+
+	return out.String()
+}
+
+type FunctionLiteral struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (funcLiteral *FunctionLiteral) expressionNode()      {}
+func (funcLiteral *FunctionLiteral) TokenLiteral() string { return funcLiteral.Token.Literal }
+func (funcLiteral *FunctionLiteral) String() string {
+	var out bytes.Buffer
+	var params []string
+
+	for _, param := range funcLiteral.Parameters {
+		params = append(params, param.String())
+	}
+
+	out.WriteString("func")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(")")
+	out.WriteString(funcLiteral.Body.String())
 
 	return out.String()
 }
