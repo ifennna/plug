@@ -157,3 +157,12 @@ type IntegerLiteral struct {
 func (literal *IntegerLiteral) expressionNode()      {}
 func (literal *IntegerLiteral) TokenLiteral() string { return literal.Token.Literal }
 func (literal *IntegerLiteral) String() string       { return literal.Token.Literal }
+
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (bool *Boolean) expressionNode()      {}
+func (bool *Boolean) TokenLiteral() string { return bool.Token.Literal }
+func (bool *Boolean) String() string       { return bool.Token.Literal }

@@ -55,6 +55,8 @@ func New(lexer *lexer.Lexer) *Parser {
 
 	parser.prefixParseFuncs = make(map[token.Type]prefixParseFunc)
 	parser.registerPrefix(token.IDENTIFIER, parser.parseIdentifier)
+	parser.registerPrefix(token.TRUE, parser.parseBoolean)
+	parser.registerPrefix(token.FALSE, parser.parseBoolean)
 	parser.registerPrefix(token.INT, parser.parseIntegerLiteral)
 	parser.registerPrefix(token.BANG, parser.parsePrefixExpression)
 	parser.registerPrefix(token.MINUS, parser.parsePrefixExpression)
@@ -189,6 +191,7 @@ func (parser *Parser) parseExpression(precedence int) ast.Expression {
 	leftExpression := prefix()
 
 	// move through line until we hit a lower precedence operator
+	// then we return so the lower precedence operation occurs higher up in the tree
 	for !parser.peekTokenIs(token.SEMICOLON) && precedence < parser.peekPrecedence() {
 		infix := parser.infixParseFuncs[parser.peekToken.Type]
 		if infix == nil {
@@ -217,6 +220,10 @@ func (parser *Parser) parseIntegerLiteral() ast.Expression {
 
 	literal.Value = value
 	return literal
+}
+
+func (parser *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{Token: parser.currentToken, Value: parser.currentTokenIs(token.TRUE)}
 }
 
 func (parser *Parser) parsePrefixExpression() ast.Expression {
