@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"plug/lexer"
-	"plug/token"
+	"plug/parser"
 )
 
 const PROMPT = "~> "
@@ -21,9 +21,22 @@ func Start(in io.Reader, out io.Writer) {
 
 		line := scanner.Text()
 		lex := lexer.New(line)
+		p := parser.New(lex)
 
-		for tok := lex.NextToken(); tok.Type != token.EOF; tok = lex.NextToken() {
-			fmt.Printf("%+v\n", tok)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
 		}
+
+		_, _ = io.WriteString(out, program.String())
+		_, _ = io.WriteString(out, "\n")
+	}
+}
+
+func printParserErrors(out io.Writer, errors []string) {
+	_, _ = io.WriteString(out, "Parser errors:\n")
+	for _, msg := range errors {
+		_, _ = io.WriteString(out, "\t"+msg+"\n")
 	}
 }
