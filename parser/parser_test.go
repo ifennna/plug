@@ -329,8 +329,8 @@ func TestFunctionParameterParsing(t *testing.T) {
 		parser := New(lexer)
 		program := parser.ParseProgram()
 		checkParserErrors(t, parser)
-		stmt := program.Statements[0].(*ast.ExpressionStatement)
-		function := stmt.Expression.(*ast.FunctionLiteral)
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+		function := statement.Expression.(*ast.FunctionLiteral)
 		if len(function.Parameters) != len(testCase.expectedParams) {
 			t.Errorf("length parameters wrong. want %d, got=%d\n",
 				len(testCase.expectedParams), len(function.Parameters))
@@ -339,6 +339,35 @@ func TestFunctionParameterParsing(t *testing.T) {
 			testLiteralExpression(t, function.Parameters[i], ident)
 		}
 	}
+}
+
+func TestCallExpressionParsing(t *testing.T) {
+	input := "add(1, 2*3, 4+5)"
+
+	lexer := lexerPackage.New(input)
+	parser := New(lexer)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements contains %d statements, not %d", len(program.Statements), 1)
+	}
+	statement := getStatement(program, t)
+	expression, ok := statement.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("statement expression is not ast.CallExpression. got=%T", statement.Expression)
+	}
+
+	if !testIdentifier(t, expression.Function, "add") {
+		return
+	}
+	if len(expression.Arguments) != 3 {
+		t.Fatalf("wrong length of arguments, got %d", len(expression.Arguments))
+	}
+
+	testLiteralExpression(t, expression.Arguments[0], 1)
+	testInfixExpression(t, expression.Arguments[1], 2, "*", 3)
+	testInfixExpression(t, expression.Arguments[2], 4, "+", 5)
 }
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
@@ -433,6 +462,18 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"!(true == true)",
 			"(!(true == true))",
+		},
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
+		{
+			"add(a + b + c * d / f + g)",
+			"add((((a + b) + ((c * d) / f)) + g))",
 		},
 	}
 
