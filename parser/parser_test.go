@@ -8,65 +8,65 @@ import (
 )
 
 func TestLetStatements(t *testing.T) {
-	input := `
-let x = 5;
-let y = 10;
-let foo = 83.338;
-`
-
-	lexer := lexerPackage.New(input)
-	parser := New(lexer)
-
-	program := parser.ParseProgram()
-	checkParserErrors(t, parser)
-
-	if program == nil {
-		t.Fatalf("ParseProgram() returned nil")
-	}
-	if len(program.Statements) != 3 {
-		t.Fatalf("program contains %d statements, not 3", len(program.Statements))
-	}
-
-	tests := []struct {
+	testCases := []struct {
+		input              string
 		expectedIdentifier string
+		expectedValue      interface{}
 	}{
-		{"x"},
-		{"y"},
-		{"foo"},
+		{"let x = 5;", "x", 5},
+		{"let y = true;", "y", true},
+		{"let foo = y;", "foo", "y"},
 	}
 
-	for index, value := range tests {
-		statement := program.Statements[index]
-		if !testLetStatement(t, statement, value.expectedIdentifier) {
+	for _, testCase := range testCases {
+		lexer := lexerPackage.New(testCase.input)
+		parser := New(lexer)
+		program := parser.ParseProgram()
+		checkParserErrors(t, parser)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program contains %d statements, not 1", len(program.Statements))
+		}
+		statement := program.Statements[0]
+		if !testLetStatement(t, statement, testCase.expectedIdentifier) {
+			return
+		}
+		value := statement.(*ast.LetStatement).Value
+		if !testLiteralExpression(t, value, testCase.expectedValue) {
 			return
 		}
 	}
 }
 
 func TestReturnStatements(t *testing.T) {
-	input := `
-return 5;
-return 10;
-return 993322;
-`
-
-	lexer := lexerPackage.New(input)
-	parser := New(lexer)
-	program := parser.ParseProgram()
-	checkParserErrors(t, parser)
-
-	if len(program.Statements) != 3 {
-		t.Fatalf("program contains %d statements, not 3", len(program.Statements))
+	testCases := []struct {
+		input         string
+		expectedValue interface{}
+	}{
+		{"return 5;", 5},
+		{"return true;", true},
+		{"return foobar;", "foobar"},
 	}
 
-	for _, statement := range program.Statements {
+	for _, testCase := range testCases {
+		lexer := lexerPackage.New(testCase.input)
+		parser := New(lexer)
+		program := parser.ParseProgram()
+		checkParserErrors(t, parser)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program contains %d statements, not 1", len(program.Statements))
+		}
+		statement := program.Statements[0]
 		returnStatement, ok := statement.(*ast.ReturnStatement)
 		if !ok {
 			t.Errorf("statement not *ast.ReturnStatement, got %T", statement)
-			continue
 		}
 		if returnStatement.TokenLiteral() != "return" {
 			t.Errorf("returnStatement token not 'return', got %q", returnStatement.TokenLiteral())
+		}
+		if !testLiteralExpression(t, returnStatement.ReturnValue, testCase.expectedValue) {
+			return
 		}
 	}
 }
