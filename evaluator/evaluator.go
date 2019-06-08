@@ -17,6 +17,10 @@ func Eval(node ast.Node) object.Object {
 		return evalStatements(node.Statements)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
+	case *ast.InfixExpression:
+		leftExpression := Eval(node.Left)
+		rightExpression := Eval(node.Right)
+		return evalInfixExpression(node.Operator, leftExpression, rightExpression)
 	case *ast.PrefixExpression:
 		rightExpression := Eval(node.Right)
 		return evalPrefixExpression(node.Operator, rightExpression)
@@ -37,6 +41,47 @@ func evalStatements(statements []ast.Statement) object.Object {
 	}
 
 	return result
+}
+
+// For expressions that resolve to boolean, direct comparison can be carried out since there are only
+// two boolean objects. In other cases the values have to be unwrapped and compared instead.
+func evalInfixExpression(operator string, left, right object.Object) object.Object {
+	switch {
+	case left.Type() == object.INTEGER && right.Type() == object.INTEGER:
+		return evalIntegerInfixExpression(operator, left, right)
+	case operator == "==":
+		return referenceBoolObject(left == right)
+	case operator == "!=":
+		return referenceBoolObject(left != right)
+	default:
+		return NULL
+	}
+}
+
+func evalIntegerInfixExpression(operator string, left, right object.Object) object.Object {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	switch operator {
+	case "+":
+		return &object.Integer{Value: leftValue + rightValue}
+	case "-":
+		return &object.Integer{Value: leftValue - rightValue}
+	case "*":
+		return &object.Integer{Value: leftValue * rightValue}
+	case "/":
+		return &object.Integer{Value: leftValue / rightValue}
+	case ">":
+		return referenceBoolObject(leftValue > rightValue)
+	case "<":
+		return referenceBoolObject(leftValue < rightValue)
+	case "==":
+		return referenceBoolObject(leftValue == rightValue)
+	case "!=":
+		return referenceBoolObject(leftValue != rightValue)
+	default:
+		return NULL
+	}
 }
 
 func evalPrefixExpression(operator string, right object.Object) object.Object {
