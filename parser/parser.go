@@ -186,7 +186,7 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	statement.ReturnValue = parser.parseExpression(LOWEST)
 
-	if !parser.peekTokenIs(token.SEMICOLON) {
+	if parser.peekTokenIs(token.SEMICOLON) {
 		parser.nextToken()
 	}
 
