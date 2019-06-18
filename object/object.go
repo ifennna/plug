@@ -5,15 +5,23 @@ import "fmt"
 type Type string
 
 const (
-	INTEGER = "INTEGER"
-	BOOLEAN = "BOOLEAN"
-	NULL    = "NULL"
+	INTEGER             = "INTEGER"
+	BOOLEAN             = "BOOLEAN"
+	NULL                = "NULL"
+	RETURN_VALUE_OBJECT = "RETURN_VALUE"
 )
 
 type Object interface {
 	Type() Type
 	Inspect() string
 }
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (rValue *ReturnValue) Type() Type      { return RETURN_VALUE_OBJECT }
+func (rValue *ReturnValue) Inspect() string { return rValue.Value.Inspect() }
 
 type Integer struct {
 	Value int64
