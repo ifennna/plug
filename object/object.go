@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"plug/ast"
+	"strings"
+)
 
 type Type string
 
@@ -9,12 +14,38 @@ const (
 	BOOLEAN             = "BOOLEAN"
 	NULL                = "NULL"
 	ERROR_OBJECT        = "ERROR"
+	FUNCTION_OBJECT     = "FUNCTION"
 	RETURN_VALUE_OBJECT = "RETURN_VALUE"
 )
 
 type Object interface {
 	Type() Type
 	Inspect() string
+}
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+func (fn *Function) Type() Type { return FUNCTION_OBJECT }
+func (fn *Function) Inspect() string {
+	var out bytes.Buffer
+	var params []string
+
+	for _, param := range fn.Parameters {
+		params = append(params, param.String())
+	}
+
+	out.WriteString("func")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") \n")
+	out.WriteString(fn.Body.String())
+	out.WriteString("\n")
+
+	return out.String()
 }
 
 type ReturnValue struct {
@@ -49,22 +80,3 @@ type Error struct {
 
 func (e *Error) Type() Type      { return ERROR_OBJECT }
 func (e *Error) Inspect() string { return "Error: " + e.Message }
-
-type Environment struct {
-	store map[string]Object
-}
-
-func NewEnvironment() *Environment {
-	s := make(map[string]Object)
-	return &Environment{store: s}
-}
-
-func (env *Environment) Get(name string) (Object, bool) {
-	object, ok := env.store[name]
-	return object, ok
-}
-
-func (env *Environment) Set(name string, value Object) Object {
-	env.store[name] = value
-	return value
-}

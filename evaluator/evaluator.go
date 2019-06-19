@@ -30,6 +30,21 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return value
 		}
 		env.Set(node.Name.Value, value)
+	case *ast.FunctionLiteral:
+		parameters := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: parameters, Env: env, Body: body}
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+		arguments := evalExpressions(node.Arguments, env)
+		// catch errors
+		if len(arguments) == 1 && isError(arguments[0]) {
+			return arguments[0]
+		}
+		return applyFunction(function, arguments)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
 	case *ast.ExpressionStatement:
@@ -95,6 +110,52 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 	}
 
 	return result
+}
+
+func evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {
+	var result []object.Object
+
+	for _, expression := range expressions {
+		evaluated := Eval(expression, env)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+
+	return result
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
+
+	innerEnv := createFunctionScope(function, args)
+	evaluated := Eval(function.Body, innerEnv)
+
+	return unwrapReturnValue(evaluated)
+}
+
+func createFunctionScope(fn *object.Function, arguments []object.Object) *object.Environment {
+
+	// passing the function's environment allow for closures, we still have the
+	// function's bindings ling after it has finished execution
+	env := object.NewEnclosedEvironment(fn.Env)
+
+	for paramIndex, param := range fn.Parameters {
+		env.Set(param.Value, arguments[paramIndex])
+	}
+
+	return env
+}
+
+func unwrapReturnValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+	return obj
 }
 
 func evalIfExpression(ifExp *ast.IfExpression, env *object.Environment) object.Object {
