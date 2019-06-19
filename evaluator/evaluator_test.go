@@ -7,11 +7,23 @@ import (
 	"testing"
 )
 
+type TestCase struct {
+	input    string
+	expected interface{}
+}
+
+type IntegerTestCase struct {
+	input    string
+	expected int64
+}
+
+type BooleanTestCase struct {
+	input    string
+	expected bool
+}
+
 func TestIfElseExpressions(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected interface{}
-	}{
+	testCases := []TestCase{
 		{"if (true) { return 10 }", 10},
 		{"if (false) { 10 }", nil},
 		{"if (1) { 10 }", 10},
@@ -32,11 +44,21 @@ func TestIfElseExpressions(t *testing.T) {
 	}
 }
 
+func TestLetStatements(t *testing.T) {
+	testCases := []IntegerTestCase{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = b + a + 5; c;", 15},
+	}
+
+	for _, testCase := range testCases {
+		testIntegerObject(t, testCase.expected, testEval(testCase.input))
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected int64
-	}{
+	testCases := []IntegerTestCase{
 		{"return 10;", 10},
 		{"return 10; 9;", 10},
 		{"return 2 * 5; 9;", 10},
@@ -56,10 +78,7 @@ func TestReturnStatements(t *testing.T) {
 }
 
 func TestEvalIntegerExpression(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected int64
-	}{
+	testCases := []IntegerTestCase{
 		{"5", 5},
 		{"7", 7},
 		{"-7", -7},
@@ -84,10 +103,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 }
 
 func TestEvalBooleanExpression(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected bool
-	}{
+	testCases := []BooleanTestCase{
 		{"true", true},
 		{"false", false},
 		{"1 < 2", true},
@@ -116,10 +132,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 }
 
 func TestBangOperator(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected bool
-	}{
+	testCases := []BooleanTestCase{
 		{"!true", false},
 		{"!false", true},
 		{"!5", false},
@@ -151,6 +164,7 @@ func TestErrorHandling(t *testing.T) {
 					}
 					return 1;
 				}`, "unknown operator: BOOLEAN + BOOLEAN"},
+		{"foobar", "variable has not been declared: foobar"},
 	}
 
 	for _, testCase := range testCases {
@@ -171,8 +185,9 @@ func testEval(input string) object.Object {
 	lex := lexer.New(input)
 	p := parser.New(lex)
 	program := p.ParseProgram()
+	env := object.NewEnvironment()
 
-	return Eval(program)
+	return Eval(program, env)
 }
 
 func testNullObject(t *testing.T, obj object.Object) bool {
