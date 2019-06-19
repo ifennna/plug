@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"plug/ast"
 	"plug/object"
 )
@@ -19,6 +20,9 @@ func Eval(node ast.Node) object.Object {
 		return evalBlockStatement(node)
 	case *ast.ReturnStatement:
 		value := Eval(node.ReturnValue)
+		if isError(value) {
+			return value
+		}
 		return &object.ReturnValue{Value: value}
 	case *ast.IfExpression:
 		return evalIfExpression(node)
@@ -26,10 +30,19 @@ func Eval(node ast.Node) object.Object {
 		return Eval(node.Expression)
 	case *ast.InfixExpression:
 		leftExpression := Eval(node.Left)
+		if isError(leftExpression) {
+			return leftExpression
+		}
 		rightExpression := Eval(node.Right)
+		if isError(rightExpression) {
+			return rightExpression
+		}
 		return evalInfixExpression(node.Operator, leftExpression, rightExpression)
 	case *ast.PrefixExpression:
 		rightExpression := Eval(node.Right)
+		if isError(rightExpression) {
+			return rightExpression
+		}
 		return evalPrefixExpression(node.Operator, rightExpression)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -46,10 +59,13 @@ func evalProgram(program *ast.Program) object.Object {
 	for _, statement := range program.Statements {
 		result = Eval(statement)
 
-		// if we have a return statement, return the value and ignore the rest of
-		// the code within the scope
-		if returnValue, ok := result.(*object.ReturnValue); ok {
-			return returnValue.Value
+		// if we have an error or a return statement, return the value and
+		// ignore the rest of the code within the scope
+		switch result := result.(type) {
+		case *object.ReturnValue:
+			return result.Value
+		case *object.Error:
+			return result
 		}
 	}
 
@@ -62,8 +78,11 @@ func evalBlockStatement(block *ast.BlockStatement) object.Object {
 	for _, statement := range block.Statements {
 		result = Eval(statement)
 
-		if result != nil && result.Type() == object.RETURN_VALUE_OBJECT {
-			return result
+		if result != nil {
+			resultType := result.Type()
+			if resultType == object.RETURN_VALUE_OBJECT || resultType == object.ERROR_OBJECT {
+				return result
+			}
 		}
 	}
 
@@ -72,6 +91,9 @@ func evalBlockStatement(block *ast.BlockStatement) object.Object {
 
 func evalIfExpression(ifExp *ast.IfExpression) object.Object {
 	condition := Eval(ifExp.Condition)
+	if isError(condition) {
+		return condition
+	}
 
 	if isTruthy(condition) {
 		return Eval(ifExp.Consequence)
@@ -105,8 +127,10 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return referenceBoolObject(left == right)
 	case operator == "!=":
 		return referenceBoolObject(left != right)
+	case left.Type() != right.Type():
+		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -132,7 +156,7 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	case "!=":
 		return referenceBoolObject(leftValue != rightValue)
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -143,7 +167,7 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 	case "-":
 		return evalMinusPrefixOperator(right)
 	default:
-		return NULL
+		return newError("unknown operator: %s%s", operator, right.Type())
 	}
 }
 
@@ -162,10 +186,21 @@ func evalBangOperator(expression object.Object) object.Object {
 
 func evalMinusPrefixOperator(expression object.Object) object.Object {
 	if expression.Type() != object.INTEGER {
-		return NULL
+		return newError("unknown operator: -%s", expression.Type())
 	}
 	value := expression.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+
+func newError(format string, a ...interface{}) *object.Error {
+	return &object.Error{Message: fmt.Sprintf(format, a...)}
+}
+
+func isError(obj object.Object) bool {
+	if obj != nil {
+		return obj.Type() == object.ERROR_OBJECT
+	}
+	return false
 }
 
 func referenceBoolObject(input bool) *object.Boolean {
