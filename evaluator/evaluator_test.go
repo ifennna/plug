@@ -142,6 +142,19 @@ func TestStringLiteral(t *testing.T) {
 	}
 }
 
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String, got %T (%+v)", evaluated, evaluated)
+	}
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value, got %q", str.Value)
+	}
+}
+
 func TestEvalBooleanExpression(t *testing.T) {
 	testCases := []BooleanTestCase{
 		{"true", true},
@@ -205,6 +218,7 @@ func TestErrorHandling(t *testing.T) {
 					return 1;
 				}`, "unknown operator: BOOLEAN + BOOLEAN"},
 		{"foobar", "variable has not been declared: foobar"},
+		{`"Hello" - "World"`, "unknown operator: STRING - STRING"},
 	}
 
 	for _, testCase := range testCases {
@@ -216,7 +230,7 @@ func TestErrorHandling(t *testing.T) {
 		}
 
 		if errorObject.Message != testCase.expectedMessage {
-			t.Errorf("Wrong error message, expevted %q, got %q", testCase.expectedMessage, errorObject.Message)
+			t.Errorf("Wrong error message, expected %q, got %q", testCase.expectedMessage, errorObject.Message)
 		}
 	}
 }
