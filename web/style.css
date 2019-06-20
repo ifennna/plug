@@ -1,15 +1,18 @@
-div {
-    background-color: darkslategrey;
-    color: white;
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: sans-serif;
+}
+
+section {
+    padding-bottom: 10px;
 }
 
 textarea {
+    flex: 1 1;
     font-family: monospace;
     padding: 10px;
     margin: auto;
     white-space: pre;
-}
-
-[contenteditable] {
-    display: block;
 }
