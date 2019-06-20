@@ -1,0 +1,15 @@
+div {
+    background-color: darkslategrey;
+    color: white;
+}
+
+textarea {
+    font-family: monospace;
+    padding: 10px;
+    margin: auto;
+    white-space: pre;
+}
+
+[contenteditable] {
+    display: block;
+}

@@ -1,18 +1,34 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"os/user"
+	"bytes"
 	"plug/repl"
+	"strings"
+	"syscall/js"
 )
 
 func main() {
-	person, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Hello %s! This is the Plug programming language!\n", person.Username)
-	fmt.Printf("Feel free to type in commands\n")
-	repl.Start(os.Stdin, os.Stdout)
+	c := make(chan struct{}, 0)
+
+	println("WASM Go Initialized")
+
+	// register functions
+	registerCallbacks()
+	<-c
+}
+
+func registerCallbacks() {
+	js.Global().Set("run", js.FuncOf(run))
+}
+
+func run(this js.Value, args []js.Value) interface{} {
+	code := js.Global().Get("document").Call("getElementById", "input").Get("value").String()
+	reader := strings.NewReader(code)
+	writer := &bytes.Buffer{}
+
+	repl.Start(reader, writer)
+
+	js.Global().Get("document").Call("getElementById", "output").Set("value", writer.String())
+
+	return true
 }

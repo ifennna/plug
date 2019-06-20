@@ -12,8 +12,7 @@ let add = func(x, y) {
 let result = add(five, ten);
 ```
  
-This is basically a toy project for my personal edification. It's very much 
-in its infancy. The only thing available is a REPL.
+This is Plug's WebAssembly implementation that allows Plug code to be 
+run in the browser.
 
-To run the REPL, make sure you have [Go](https://golang.org/dl/) installed. Clone the project to 
-your `$GOPATH` and run `go run main.go` from the project folder. 
+To run code, serve the `web` folder.

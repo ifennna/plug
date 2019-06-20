@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="style.css" rel="stylesheet">
+    <script src="wasm_exec.js"></script>
+    <script>
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+            document.getElementById("runButton").disabled = false;
+        });
+    </script>
+</head>
+<body>
+    <textarea rows="15" cols="120" autofocus id="input"
+              autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <button id="runButton" onclick="run()" disabled>Execute</button>
+    <textarea id="output" readonly
+              autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+</body>
+</html>
