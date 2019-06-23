@@ -13,15 +13,11 @@ func main() {
 	println("WASM Go Initialized")
 
 	// register functions
-	registerCallbacks()
+	compile()
 	<-c
 }
 
-func registerCallbacks() {
-	js.Global().Set("run", js.FuncOf(run))
-}
-
-func run(this js.Value, args []js.Value) interface{} {
+func compile() {
 	code := js.Global().Get("document").Call("getElementById", "input").Get("value").String()
 	reader := strings.NewReader(code)
 	writer := &bytes.Buffer{}
@@ -29,6 +25,4 @@ func run(this js.Value, args []js.Value) interface{} {
 	repl.Start(reader, writer)
 
 	js.Global().Get("document").Call("getElementById", "output").Set("value", writer.String())
-
-	return true
 }
