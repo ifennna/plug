@@ -8,13 +8,9 @@ import (
 )
 
 func main() {
-	c := make(chan struct{}, 0)
-
 	println("WASM Go Initialized")
 
-	// register functions
 	compile()
-	<-c
 }
 
 func compile() {
