@@ -217,7 +217,7 @@ func TestErrorHandling(t *testing.T) {
 					}
 					return 1;
 				}`, "unknown operator: BOOLEAN + BOOLEAN"},
-		{"foobar", "variable has not been declared: foobar"},
+		{"foobar", "identifier not found: foobar"},
 		{`"Hello" - "World"`, "unknown operator: STRING - STRING"},
 	}
 
@@ -231,6 +231,33 @@ func TestErrorHandling(t *testing.T) {
 
 		if errorObject.Message != testCase.expectedMessage {
 			t.Errorf("Wrong error message, expected %q, got %q", testCase.expectedMessage, errorObject.Message)
+		}
+	}
+}
+
+func TestBuiltinFunctions(t *testing.T) {
+	testCases := []TestCase{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{`len(1)`, "argument to `len` not supported, got INTEGER"},
+		{`len("one", "train")`, "invalid number of arguments to `len`, expected 1, got 2"},
+	}
+
+	for _, testCase := range testCases {
+		evaluated := testEval(testCase.input)
+		switch expected := testCase.expected.(type) {
+		case int:
+			testIntegerObject(t, int64(expected), evaluated)
+		case string:
+			error, ok := evaluated.(*object.Error)
+			if !ok {
+				t.Errorf("object is not an error, got %T (%+v)", evaluated, evaluated)
+				continue
+			}
+			if error.Message != expected {
+				t.Errorf("wrong error mesage, expected %q, got %q", expected, error.Message)
+			}
 		}
 	}
 }

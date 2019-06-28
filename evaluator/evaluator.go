@@ -129,15 +129,18 @@ func evalExpressions(expressions []ast.Expression, env *object.Environment) []ob
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch function := fn.(type) {
+	case *object.Function:
+		innerEnv := createFunctionScope(function, args)
+		evaluated := Eval(function.Body, innerEnv)
+		return unwrapReturnValue(evaluated)
+
+	case *object.Builtin:
+		return function.Function(args...)
+
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
-
-	innerEnv := createFunctionScope(function, args)
-	evaluated := Eval(function.Body, innerEnv)
-
-	return unwrapReturnValue(evaluated)
 }
 
 func createFunctionScope(fn *object.Function, arguments []object.Object) *object.Environment {
@@ -276,11 +279,14 @@ func evalMinusPrefixOperator(expression object.Object) object.Object {
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	value, ok := env.Get(node.Value)
-	if !ok {
-		return newError("variable has not been declared: " + node.Value)
+	if value, ok := env.Get(node.Value); ok {
+		return value
 	}
-	return value
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: " + node.Value)
 }
 
 func newError(format string, a ...interface{}) *object.Error {

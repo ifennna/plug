@@ -14,9 +14,10 @@ const (
 	BOOLEAN             = "BOOLEAN"
 	NULL                = "NULL"
 	STRING_OBJECT       = "STRING"
-	ERROR_OBJECT        = "ERROR"
 	FUNCTION_OBJECT     = "FUNCTION"
 	RETURN_VALUE_OBJECT = "RETURN_VALUE"
+	ERROR_OBJECT        = "ERROR"
+	BUILTIN_OBJECT      = "BUILTIN"
 )
 
 type Object interface {
@@ -88,3 +89,12 @@ type Error struct {
 
 func (e *Error) Type() Type      { return ERROR_OBJECT }
 func (e *Error) Inspect() string { return "Error: " + e.Message }
+
+type BuiltinFunction func(args ...Object) Object
+
+type Builtin struct {
+	Function BuiltinFunction
+}
+
+func (b *Builtin) Type() Type      { return BUILTIN_OBJECT }
+func (b *Builtin) Inspect() string { return "builtin function" }
