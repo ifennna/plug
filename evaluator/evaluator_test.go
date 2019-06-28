@@ -200,6 +200,48 @@ func TestBangOperator(t *testing.T) {
 	}
 }
 
+func TestArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 3, 4 + 5]"
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Array)
+	if !ok {
+		t.Fatalf("object is not an array. got %T (%+v)", evaluated, evaluated)
+	}
+
+	if len(result.Elements) != 3 {
+		t.Fatalf("length of elements is not 3, got %d", len(result.Elements))
+	}
+
+	testIntegerObject(t, 1, result.Elements[0])
+	testIntegerObject(t, 6, result.Elements[1])
+	testIntegerObject(t, 9, result.Elements[2])
+}
+
+func TestArrayIndexExpressions(t *testing.T) {
+	testCases := []TestCase{
+		{"[1, 2, 3][0]", 1},
+		{"[1, 2, 3][1]", 2},
+		{"[1, 2, 3][2]", 3},
+		{"let i = 0; [1][i];", 1},
+		{"[1, 2, 3][1 + 1];", 3},
+		{"let myArray = [1, 2, 3]; myArray[2];", 3},
+		{"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6},
+		{"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2},
+		{"[1, 2, 3][3]", nil},
+		{"[1, 2, 3][-1]", nil},
+	}
+	for _, testCase := range testCases {
+		evaluated := testEval(testCase.input)
+		integer, ok := testCase.expected.(int)
+		if ok {
+			testIntegerObject(t, int64(integer), evaluated)
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func TestErrorHandling(t *testing.T) {
 	testCases := []struct {
 		input           string
@@ -240,6 +282,8 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("")`, 0},
 		{`len("four")`, 4},
 		{`len("hello world")`, 11},
+		{`len([])`, 0},
+		{`len([3, 9, 5])`, 3},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "train")`, "invalid number of arguments to `len`, expected 1, got 2"},
 	}

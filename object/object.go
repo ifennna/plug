@@ -10,14 +10,15 @@ import (
 type Type string
 
 const (
-	INTEGER             = "INTEGER"
-	BOOLEAN             = "BOOLEAN"
-	NULL                = "NULL"
-	STRING_OBJECT       = "STRING"
-	FUNCTION_OBJECT     = "FUNCTION"
-	RETURN_VALUE_OBJECT = "RETURN_VALUE"
-	ERROR_OBJECT        = "ERROR"
-	BUILTIN_OBJECT      = "BUILTIN"
+	INTEGER      = "INTEGER"
+	BOOLEAN      = "BOOLEAN"
+	NULL         = "NULL"
+	STRING       = "STRING"
+	FUNCTION     = "FUNCTION"
+	RETURN_VALUE = "RETURN_VALUE"
+	ARRAY        = "ARRAY"
+	ERROR        = "ERROR"
+	BUILTIN      = "BUILTIN"
 )
 
 type Object interface {
@@ -31,7 +32,7 @@ type Function struct {
 	Env        *Environment
 }
 
-func (fn *Function) Type() Type { return FUNCTION_OBJECT }
+func (fn *Function) Type() Type { return FUNCTION }
 func (fn *Function) Inspect() string {
 	var out bytes.Buffer
 	var params []string
@@ -54,7 +55,7 @@ type ReturnValue struct {
 	Value Object
 }
 
-func (rValue *ReturnValue) Type() Type      { return RETURN_VALUE_OBJECT }
+func (rValue *ReturnValue) Type() Type      { return RETURN_VALUE }
 func (rValue *ReturnValue) Inspect() string { return rValue.Value.Inspect() }
 
 type Integer struct {
@@ -68,7 +69,7 @@ type String struct {
 	Value string
 }
 
-func (s *String) Type() Type      { return STRING_OBJECT }
+func (s *String) Type() Type      { return STRING }
 func (s *String) Inspect() string { return s.Value }
 
 type Boolean struct {
@@ -77,6 +78,26 @@ type Boolean struct {
 
 func (bool *Boolean) Type() Type      { return BOOLEAN }
 func (bool *Boolean) Inspect() string { return fmt.Sprintf("%t", bool.Value) }
+
+type Array struct {
+	Elements []Object
+}
+
+func (arr *Array) Type() Type { return ARRAY }
+func (arr *Array) Inspect() string {
+	var out bytes.Buffer
+	var elements []string
+
+	for _, element := range arr.Elements {
+		elements = append(elements, element.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
 
 type Null struct{}
 
@@ -87,7 +108,7 @@ type Error struct {
 	Message string
 }
 
-func (e *Error) Type() Type      { return ERROR_OBJECT }
+func (e *Error) Type() Type      { return ERROR }
 func (e *Error) Inspect() string { return "Error: " + e.Message }
 
 type BuiltinFunction func(args ...Object) Object
@@ -96,5 +117,5 @@ type Builtin struct {
 	Function BuiltinFunction
 }
 
-func (b *Builtin) Type() Type      { return BUILTIN_OBJECT }
+func (b *Builtin) Type() Type      { return BUILTIN }
 func (b *Builtin) Inspect() string { return "builtin function" }

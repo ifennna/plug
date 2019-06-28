@@ -65,6 +65,23 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return rightExpression
 		}
 		return evalPrefixExpression(node.Operator, rightExpression)
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+		index := Eval(node.Index, env)
+		if isError(index) {
+			return index
+		}
+		return evalIndexExpression(left, index)
+	case *ast.ArrayLiteral:
+		elements := evalExpressions(node.Elements, env)
+		// catch errors
+		if len(elements) == 1 && isError(elements[0]) {
+			return elements[0]
+		}
+		return &object.Array{Elements: elements}
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.IntegerLiteral:
@@ -105,7 +122,7 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 
 		if result != nil {
 			resultType := result.Type()
-			if resultType == object.RETURN_VALUE_OBJECT || resultType == object.ERROR_OBJECT {
+			if resultType == object.RETURN_VALUE || resultType == object.ERROR {
 				return result
 			}
 		}
@@ -191,13 +208,34 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
+func evalIndexExpression(left, index object.Object) object.Object {
+	switch {
+	case left.Type() == object.ARRAY && index.Type() == object.INTEGER:
+		return evalArrayIndexExpression(left, index)
+	default:
+		return newError("index operator not supported: %s", index.Type())
+	}
+}
+
+func evalArrayIndexExpression(array, index object.Object) object.Object {
+	arr := array.(*object.Array)
+	indexValue := index.(*object.Integer).Value
+	max := int64(len(arr.Elements) - 1)
+
+	if indexValue < 0 || indexValue > max {
+		return NULL
+	}
+
+	return arr.Elements[indexValue]
+}
+
 // For expressions that resolve to boolean, direct comparison can be carried out since there are only
 // two boolean objects. In other cases the values have to be unwrapped and compared instead.
 func evalInfixExpression(operator string, left, right object.Object) object.Object {
 	switch {
 	case left.Type() == object.INTEGER && right.Type() == object.INTEGER:
 		return evalIntegerInfixExpression(operator, left, right)
-	case left.Type() == object.STRING_OBJECT && right.Type() == object.STRING_OBJECT:
+	case left.Type() == object.STRING && right.Type() == object.STRING:
 		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
 		return referenceBoolObject(left == right)
@@ -295,7 +333,7 @@ func newError(format string, a ...interface{}) *object.Error {
 
 func isError(obj object.Object) bool {
 	if obj != nil {
-		return obj.Type() == object.ERROR_OBJECT
+		return obj.Type() == object.ERROR
 	}
 	return false
 }
