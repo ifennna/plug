@@ -286,6 +286,15 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len([3, 9, 5])`, 3},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "train")`, "invalid number of arguments to `len`, expected 1, got 2"},
+		{`first([])`, nil},
+		{`first([3, 9, 5])`, 3},
+		{`last([])`, nil},
+		{`last([3, 9, 5])`, 5},
+		{`rest([3, 9, 5])`, nil},
+		{`rest([3, 9, 5])`, []int{9, 5}},
+		{`push([3, 9, 5], 6)`, []int{3, 9, 5, 6}},
+		{`push([], 1)`, []int{1}},
+		{`push("b", "a")`, "first argument to `push` not supported, expected ARRAY, got STRING"},
 	}
 
 	for _, testCase := range testCases {
@@ -301,6 +310,15 @@ func TestBuiltinFunctions(t *testing.T) {
 			}
 			if error.Message != expected {
 				t.Errorf("wrong error mesage, expected %q, got %q", expected, error.Message)
+			}
+		case []int:
+			array, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Errorf("object is not an array, got %T (%+v)", evaluated, evaluated)
+				continue
+			}
+			for index, element := range expected {
+				testIntegerObject(t, int64(element), array.Elements[index])
 			}
 		}
 	}
