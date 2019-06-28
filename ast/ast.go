@@ -268,3 +268,45 @@ func (callExp *CallExpression) String() string {
 
 	return out.String()
 }
+
+type ArrayLiteral struct {
+	Token    token.Token // the '[' token
+	Elements []Expression
+}
+
+func (arrLiteral *ArrayLiteral) expressionNode()      {}
+func (arrLiteral *ArrayLiteral) TokenLiteral() string { return arrLiteral.Token.Literal }
+func (arrLiteral *ArrayLiteral) String() string {
+	var out bytes.Buffer
+	var elements []string
+
+	for _, element := range arrLiteral.Elements {
+		elements = append(elements, element.String())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
+
+type IndexExpression struct {
+	Token token.Token
+	Left  Expression
+	Index Expression
+}
+
+func (indexExp *IndexExpression) expressionNode()      {}
+func (indexExp *IndexExpression) TokenLiteral() string { return indexExp.Token.Literal }
+func (indexExp *IndexExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(indexExp.Left.String())
+	out.WriteString("[")
+	out.WriteString(indexExp.Index.String())
+	out.WriteString("])")
+
+	return out.String()
+}
