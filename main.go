@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"plug/repl"
+	"plug/scanner"
 	"strings"
 	"syscall/js"
 )
@@ -18,7 +18,7 @@ func compile() {
 	reader := strings.NewReader(code)
 	writer := &bytes.Buffer{}
 
-	repl.Start(reader, writer)
+	scanner.Start(reader, writer)
 
 	js.Global().Get("document").Call("getElementById", "output").Set("value", writer.String())
 }
