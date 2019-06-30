@@ -30,6 +30,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return value
 		}
 		env.Set(node.Name.Value, value)
+	case *ast.ForStatement:
+		return evalForLoop(node, env)
 	case *ast.FunctionLiteral:
 		parameters := node.Parameters
 		body := node.Body
@@ -129,6 +131,25 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 	}
 
 	return result
+}
+
+func evalForLoop(statement *ast.ForStatement, environment *object.Environment) object.Object {
+	var body object.Object
+
+	loopNumber := statement.Range.Arguments[0].(*ast.IntegerLiteral)
+	value := int(loopNumber.Value)
+	for i := 0; i < value; i++ {
+		environment.Set(statement.Index.Value, &object.Integer{Value: int64(i)})
+		body = evalBlockStatement(statement.Body, environment)
+
+		if body != nil {
+			returnType := body.Type()
+			if returnType == object.RETURN_VALUE || returnType == object.ERROR {
+				return body
+			}
+		}
+	}
+	return body
 }
 
 func evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {

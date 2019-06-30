@@ -90,6 +90,15 @@ func TestLetStatements(t *testing.T) {
 	testIntegerCases(testCases, t)
 }
 
+func TestForStatements(t *testing.T) {
+	testCases := []IntegerTestCase{
+		{"for i = range(5) { i }", 4},
+		{"for i = range(5) { return i; }", 0},
+	}
+
+	testIntegerCases(testCases, t)
+}
+
 func TestReturnStatements(t *testing.T) {
 	testCases := []IntegerTestCase{
 		{"return 10;", 10},
