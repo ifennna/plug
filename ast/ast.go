@@ -65,6 +65,29 @@ func (letStatement *LetStatement) String() string {
 	return out.String()
 }
 
+type ForStatement struct {
+	Token token.Token
+	Index *Identifier
+	Range *CallExpression
+	Body  *BlockStatement
+}
+
+func (forStatement *ForStatement) statementNode()       {}
+func (forStatement *ForStatement) TokenLiteral() string { return forStatement.Token.Literal }
+func (forStatement *ForStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(forStatement.TokenLiteral() + " ")
+	out.WriteString(forStatement.Index.String())
+	out.WriteString(" in ")
+	out.WriteString(forStatement.Range.String())
+	out.WriteString(" {")
+	out.WriteString(forStatement.Body.String())
+	out.WriteString("}")
+
+	return out.String()
+}
+
 type Identifier struct {
 	Token token.Token
 	Value string

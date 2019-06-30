@@ -140,6 +140,8 @@ func (parser *Parser) parseStatement() ast.Statement {
 		return parser.parseLetStatement()
 	case token.RETURN:
 		return parser.parseReturnStatement()
+	case token.FOR:
+		return parser.parseForLoop()
 	default:
 		return parser.parseExpressionStatement()
 	}
@@ -164,6 +166,32 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 	if parser.peekTokenIs(token.SEMICOLON) {
 		parser.nextToken()
 	}
+
+	return statement
+}
+
+func (parser *Parser) parseForLoop() *ast.ForStatement {
+	statement := &ast.ForStatement{Token: parser.currentToken}
+
+	parser.nextToken()
+
+	switch parser.currentToken.Type {
+	case token.IDENTIFIER:
+		statement.Index = &ast.Identifier{Token: parser.currentToken, Value: parser.currentToken.Literal}
+		if !parser.expectPeek(token.ASSIGN) {
+			return nil
+		}
+
+		parser.nextToken()
+	}
+
+	statementRange := parser.parseExpression(LOWEST)
+	statement.Range = statementRange.(*ast.CallExpression)
+
+	if !parser.expectPeek(token.LBRACE) {
+		return nil
+	}
+	statement.Body = parser.parseBlockStatement()
 
 	return statement
 }
