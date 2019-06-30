@@ -35,6 +35,22 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestForLoopParsing(t *testing.T) {
+	input := `for i = range(6) { x }`
+
+	program := setup(input, t)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	statement := program.Statements[0]
+
+	if !testForStatement(t, statement) {
+		return
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	testCases := []struct {
 		input         string
@@ -514,6 +530,47 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			t.Errorf("expected=%q, got=%q", testCase.expected, actual)
 		}
 	}
+}
+
+func testForStatement(t *testing.T, statement ast.Statement) bool {
+	if statement.TokenLiteral() != "for" {
+		t.Errorf("TokenLiteral not 'for', got=%q", statement.TokenLiteral())
+		return false
+	}
+	forStatement, ok := statement.(*ast.ForStatement)
+	if !ok {
+		t.Errorf("statement not a for loop. got=%T", statement)
+		return false
+	}
+	if !testIdentifier(t, forStatement.Range.Function, "range") {
+		return false
+	}
+	if len(forStatement.Range.Arguments) != 1 {
+		t.Fatalf("wrong length of arguments, got %d", len(forStatement.Range.Arguments))
+	}
+	testLiteralExpression(t, forStatement.Range.Arguments[0], 6)
+
+	if !testIdentifier(t, forStatement.Index, "i") {
+		return false
+	}
+	if len(forStatement.Body.Statements) != 1 {
+		t.Errorf("body is not 1 statements. got=%d\n",
+			len(forStatement.Body.Statements))
+		return false
+	}
+
+	body, ok := forStatement.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T",
+			forStatement.Body.Statements[0])
+		return false
+	}
+
+	if !testIdentifier(t, body.Expression, "x") {
+		return false
+	}
+
+	return true
 }
 
 func testLiteralExpression(t *testing.T, expression ast.Expression, expected interface{}) bool {

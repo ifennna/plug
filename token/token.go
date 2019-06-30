@@ -43,6 +43,7 @@ const (
 	FALSE    = "FALSE"
 	IF       = "IF"
 	ELSE     = "ELSE"
+	FOR      = "FOR"
 )
 
 var keywords = map[string]Type{
@@ -53,6 +54,7 @@ var keywords = map[string]Type{
 	"false":  FALSE,
 	"if":     IF,
 	"else":   ELSE,
+	"for":    FOR,
 }
 
 func LookUpIdentifier(identifier string) Type {
