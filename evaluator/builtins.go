@@ -1,6 +1,9 @@
 package evaluator
 
-import "plug/object"
+import (
+	"fmt"
+	"plug/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{Function: func(args ...object.Object) object.Object {
@@ -90,4 +93,11 @@ var builtins = map[string]*object.Builtin{
 
 		return &object.Array{Elements: newElements}
 	}},
+	"print": &object.Builtin{Function: func(args ...object.Object) object.Object {
+		for _, arg := range args {
+			fmt.Println(arg.Inspect())
+		}
+		return NULL
+	},
+	},
 }
