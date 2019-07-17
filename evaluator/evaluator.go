@@ -2,8 +2,8 @@ package evaluator
 
 import (
 	"fmt"
-	"plug/ast"
-	"plug/object"
+	"github.com/noculture/plug/ast"
+	"github.com/noculture/plug/object"
 )
 
 var (

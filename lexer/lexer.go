@@ -1,6 +1,6 @@
 package lexer
 
-import "plug/token"
+import "github.com/noculture/plug/token"
 
 type Lexer struct {
 	input           string

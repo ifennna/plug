@@ -2,12 +2,12 @@ package scanner
 
 import (
 	"bytes"
+	"github.com/noculture/plug/evaluator"
+	"github.com/noculture/plug/lexer"
+	"github.com/noculture/plug/object"
+	"github.com/noculture/plug/parser"
 	"io"
 	"io/ioutil"
-	"plug/evaluator"
-	"plug/lexer"
-	"plug/object"
-	"plug/parser"
 )
 
 func Start(in io.Reader, out io.Writer) {

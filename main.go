@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/noculture/plug/repl"
+	"github.com/noculture/plug/scanner"
 	"log"
 	"os"
 	"os/user"
-	"plug/repl"
-	"plug/scanner"
 )
 
 func main() {

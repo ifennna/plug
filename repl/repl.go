@@ -3,11 +3,11 @@ package repl
 import (
 	"bufio"
 	"fmt"
+	"github.com/noculture/plug/evaluator"
+	"github.com/noculture/plug/lexer"
+	"github.com/noculture/plug/object"
+	"github.com/noculture/plug/parser"
 	"io"
-	"plug/evaluator"
-	"plug/lexer"
-	"plug/object"
-	"plug/parser"
 )
 
 const PROMPT = "~> "

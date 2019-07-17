@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"plug/token"
+	"github.com/noculture/plug/token"
 	"testing"
 )
 

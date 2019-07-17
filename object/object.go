@@ -3,7 +3,7 @@ package object
 import (
 	"bytes"
 	"fmt"
-	"plug/ast"
+	"github.com/noculture/plug/ast"
 	"strings"
 )
 

@@ -2,7 +2,7 @@ package ast
 
 import (
 	"bytes"
-	"plug/token"
+	"github.com/noculture/plug/token"
 	"strings"
 )
 
