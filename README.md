@@ -1,5 +1,7 @@
 # Plug
 
+[![Build Status](https://travis-ci.org/noculture/plug.svg?branch=master)](https://travis-ci.org/noculture/plug)
+
 Plug is a tiny C-like programming language. Plug syntax looks like 
 this:
 
