@@ -14,6 +14,8 @@ let add = func(x, y) {
 };
 
 let result = add(five, ten);
+
+print(result);
 ```
  
 This is basically a toy project for my personal edification. It's very much 
