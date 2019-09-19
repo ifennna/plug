@@ -2,7 +2,7 @@ package evaluator
 
 import (
 	"fmt"
-	"plug/object"
+	"github.com/noculture/plug/object"
 )
 
 var builtins = map[string]*object.Builtin{

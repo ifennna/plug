@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"plug/ast"
-	lexerPackage "plug/lexer"
+	"github.com/noculture/plug/ast"
+	lexerPackage "github.com/noculture/plug/lexer"
 	"testing"
 )
 

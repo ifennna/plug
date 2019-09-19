@@ -17,15 +17,8 @@
         });
 
         async function start() {
-            let startTime;
-            let endTime;
-
-            startTime = performance.now();
             await go.run(inst);
-            endTime = performance.now();
             inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
-
-            console.log(endTime - startTime);
         }
     </script>
 </head>

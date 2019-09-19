@@ -2,9 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"plug/ast"
-	"plug/lexer"
-	"plug/token"
+	"github.com/noculture/plug/ast"
+	"github.com/noculture/plug/lexer"
+	"github.com/noculture/plug/token"
 	"strconv"
 )
 

@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"plug/token"
+	"github.com/noculture/plug/token"
 	"testing"
 )
 

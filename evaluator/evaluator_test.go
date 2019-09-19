@@ -1,9 +1,9 @@
 package evaluator
 
 import (
-	"plug/lexer"
-	"plug/object"
-	"plug/parser"
+	"github.com/noculture/plug/lexer"
+	"github.com/noculture/plug/object"
+	"github.com/noculture/plug/parser"
 	"testing"
 )
 

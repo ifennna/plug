@@ -2,15 +2,20 @@ package main
 
 import (
 	"bytes"
-	"plug/scanner"
+	"github.com/noculture/plug/scanner"
 	"strings"
 	"syscall/js"
+	"time"
 )
 
 func main() {
 	println("WASM Go Initialized")
 
+	startTime := time.Now()
 	compile()
+	elapsed := time.Since(startTime)
+
+	println(elapsed.String())
 }
 
 func compile() {
