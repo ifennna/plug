@@ -52,6 +52,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
 	case *ast.InfixExpression:
+		if node.Operator == "=" {
+			evalAssignment(node, env)
+			return nil
+		}
 		leftExpression := Eval(node.Left, env)
 		if isError(leftExpression) {
 			return leftExpression
@@ -164,6 +168,45 @@ func evalExpressions(expressions []ast.Expression, env *object.Environment) []ob
 	}
 
 	return result
+}
+
+func evalAssignment(node *ast.InfixExpression, env *object.Environment) object.Object {
+	value := Eval(node.Right, env)
+	if isError(value) {
+		return value
+	}
+	switch node.Left.(type){
+	case *ast.Identifier:
+		env.Set(node.Left.(*ast.Identifier).Value, value)
+	case *ast.IndexExpression:
+		name := node.Left.(*ast.IndexExpression).Left.(*ast.Identifier).Value
+		arr, ok := env.Get(name)
+		if !ok {
+			return newError("Array has not been declared")
+		}
+		indexValue := getIndex(node, env)
+		elements := arr.(*object.Array).Elements
+		for len(elements) < int(indexValue+1) {
+			elements = append(elements, NULL)
+		}
+		elements[indexValue] = value
+		arr.(*object.Array).Elements = elements
+		env.Set(name, arr)
+	}
+	return nil
+}
+
+func getIndex(node *ast.InfixExpression, env *object.Environment) int64 {
+	var indexValue int64
+	index := node.Left.(*ast.IndexExpression).Index
+	switch index.(type) {
+	case *ast.IntegerLiteral:
+		indexValue = index.(*ast.IntegerLiteral).Value
+	case *ast.Identifier:
+		indexObject, _ := env.Get(index.(*ast.Identifier).Value)
+		indexValue = indexObject.(*object.Integer).Value
+	}
+	return indexValue
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {

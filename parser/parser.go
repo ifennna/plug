@@ -12,6 +12,7 @@ import (
 const (
 	_ int = iota // give the following constants incrementing values from 0
 	LOWEST
+	ASSIGNMENT
 	EQUALS
 	LESSGREATER
 	SUM
@@ -30,6 +31,7 @@ var precedenceTable = map[token.Type]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.ASSIGN:   ASSIGNMENT,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
 }
@@ -74,6 +76,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	parser.registerInfix(token.MINUS, parser.parseInfixExpression)
 	parser.registerInfix(token.SLASH, parser.parseInfixExpression)
 	parser.registerInfix(token.ASTERISK, parser.parseInfixExpression)
+	parser.registerInfix(token.ASSIGN, parser.parseInfixExpression)
 	parser.registerInfix(token.EQ, parser.parseInfixExpression)
 	parser.registerInfix(token.NOT_EQ, parser.parseInfixExpression)
 	parser.registerInfix(token.LT, parser.parseInfixExpression)
