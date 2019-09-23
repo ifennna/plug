@@ -139,10 +139,18 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 
 func evalForLoop(statement *ast.ForStatement, environment *object.Environment) object.Object {
 	var body object.Object
+	var value int64
 
-	loopNumber := statement.Range.Arguments[0].(*ast.IntegerLiteral)
-	value := int(loopNumber.Value)
-	for i := 0; i < value; i++ {
+	var loopNumber = statement.Range.Arguments[0]
+	switch loopNumber.(type) {
+	case *ast.IntegerLiteral:
+		value = loopNumber.(*ast.IntegerLiteral).Value
+	case *ast.Identifier:
+		number, _ := environment.Get(loopNumber.(*ast.Identifier).Value)
+		value = number.(*object.Integer).Value
+	}
+
+	for i := 0; i < int(value); i++ {
 		environment.Set(statement.Index.Value, &object.Integer{Value: int64(i)})
 		body = evalBlockStatement(statement.Body, environment)
 
