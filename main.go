@@ -11,11 +11,7 @@ import (
 func main() {
 	println("WASM Go Initialized")
 
-	startTime := time.Now()
 	compile()
-	elapsed := time.Since(startTime)
-
-	println(elapsed.String())
 }
 
 func compile() {
@@ -23,7 +19,11 @@ func compile() {
 	reader := strings.NewReader(code)
 	writer := &bytes.Buffer{}
 
+	startTime := time.Now()
 	scanner.Start(reader, writer)
+	elapsed := time.Since(startTime)
+
+	writer.WriteString("\n Time elapsed: " + elapsed.String())
 
 	js.Global().Get("document").Call("getElementById", "output").Set("value", writer.String())
 }

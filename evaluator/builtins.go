@@ -1,9 +1,10 @@
 package evaluator
 
 import (
-	"fmt"
 	"github.com/noculture/plug/object"
 )
+
+var Out func(value string)
 
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{Function: func(args ...object.Object) object.Object {
@@ -95,7 +96,7 @@ var builtins = map[string]*object.Builtin{
 	}},
 	"print": &object.Builtin{Function: func(args ...object.Object) object.Object {
 		for _, arg := range args {
-			fmt.Println(arg.Inspect())
+			Out(arg.Inspect())
 		}
 		return NULL
 	},

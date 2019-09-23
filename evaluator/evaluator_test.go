@@ -99,34 +99,6 @@ func TestForStatements(t *testing.T) {
 	testIntegerCases(testCases, t)
 }
 
-func TestStuff(t *testing.T) {
-	input := `let multiplication = func(a, b) {
-  let size = len(a);
-  let result = [];
-
-  for i = range(size) {
-    for j = range(size) {
-      let sum = 0;
-      for k = range(size) {
-        sum = sum + a[i][k] * b[k][j]
-      }
-      let c = [];
-      c[j] = sum;
-      result[i] = c;
-    }
-  }
-
-  return result;
-}
-
-let a = [[1, 2], [2, 2]];
-let b = [[9, 8], [7, 9]];
-
-print(multiplication(a, b));`
-
-	testEval(input)
-}
-
 func TestReturnStatements(t *testing.T) {
 	testCases := []IntegerTestCase{
 		{"return 10;", 10},

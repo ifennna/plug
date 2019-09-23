@@ -25,6 +25,8 @@ func Start(in io.Reader, out io.Writer) {
 		return
 	}
 
+	evaluator.Out = send(out)
+
 	evaluator.Eval(program, env)
 }
 
@@ -32,5 +34,11 @@ func printParserErrors(out io.Writer, errors []string) {
 	_, _ = io.WriteString(out, "Parser errors:\n")
 	for _, msg := range errors {
 		_, _ = io.WriteString(out, "\t"+msg+"\n")
+	}
+}
+
+func send(out io.Writer) func(value string) {
+	return func (value string) {
+		_, _ = io.WriteString(out, value)
 	}
 }
